@@ -1,0 +1,133 @@
+I followed the steps from website: https://richings.bitbucket.io/chimes/user_guide/GettingStarted/index.html
+
+------- modules -------
+Always have these modules loaded 
+
+ml intel/2020u2 intelmpi/2020u2 hdf5/1.10.7 python/3.11.5
+
+
+------- git -lsf ------- 
+However to install chimes-data, first git -lsf needs to be installed. So I installed it by following the steps below 
+
+These are the steps that I followed while donwloading git lsf
+cd /scratch/m/murray/dtolgay/local/src  # or wherever you keep source files
+wget https://github.com/git-lfs/git-lfs/releases/download/v3.4.1/git-lfs-linux-amd64-v3.4.1.tar.gz
+
+tar -xvzf git-lfs-linux-amd64-v3.4.1.tar.gz
+cd git-lfs-3.4.1
+mkdir -p /scratch/m/murray/dtolgay/local/bin
+cp git-lfs /scratch/m/murray/dtolgay/local/bin/
+
+I had to put it into my PATH variable, so I updated the .bashrc file according to the line below: 
+export PATH="/scratch/m/murray/dtolgay/local/bin:$PATH"
+
+
+------- downloading CHIMES modules -------
+cd /scratch/m/murray/dtolgay/softwares/chimes
+git clone https://bitbucket.org/richings/chimes
+git clone https://bitbucket.org/richings/chimes-data
+git clone https://bitbucket.org/richings/chimes-driver
+git clone https://bitbucket.org/richings/chimes-tools
+
+------- Installing Sundails -------
+Sundials need to be installed to run CHIMES. Not every version of Sundails is working well with CHIMES, so I used version 
+specified on the CHIMES webpage. 
+
+To install I followed these steps 
+cd /scratch/m/murray/dtolgay/softwares
+wget https://github.com/LLNL/sundials/releases/download/v5.1.0/sundials-5.1.0.tar.gz
+tar -zxvf sundials-5.1.0.tar.gz
+cd sundials-5.1.0
+mkdir build
+cd build
+cmake -DCMAKE_INSTALL_PREFIX=/scratch/m/murray/dtolgay/local/src/sundials-5.1.0 -DBUILD_ARKODE=OFF -DBUILD_CVODE=ON -DBUILD_CVODES=OFF -DBUILD_IDA=OFF -DBUILD_IDAS=OFF -DBUILD_KINSOL=OFF -DBUILD_SHARED_LIBS=ON -DBUILD_STATIC_LIBS=ON -DCMAKE_C_FLAGS="-O2" -DEXAMPLES_ENABLE_C=OFF -DSUNDIALS_PRECISION=double ../
+make
+make install
+
+The following code above will build libraries and other required tools to 
+
+
+To add the PATH I updated the .bashrc as follows: 
+export LD_LIBRARY_PATH=/scratch/m/murray/dtolgay/local/src/sundials-5.1.0/lib64:$LD_LIBRARY_PATH
+
+
+------- Make CHIMES code -------
+I build CHIMES using openmpi so I needed to change the Makefile. 
+
+cd /scratch/m/murray/dtolgay/softwares/chimes/chimes
+scp Makefile_template Makefile 
+
+I compiled the code using the openmpi so I needed to make some changes that is not mentioned in the CHIMES webpage. 
+These changes can be seen below  
+
+CC = icc # Previously it was gcc 
+
+SUNDIALS_PATH = /scratch/m/murray/dtolgay/local/src/sundials-5.1.0
+HDF5_INCL_PATH = /scinet/niagara/software/2019b/opt/intel-2020u2-intelmpi-2020u2/hdf5/1.10.7/include
+HDF5_LIB_PATH = /scinet/niagara/software/2019b/opt/intel-2020u2-intelmpi-2020u2/hdf5/1.10.7/lib  
+
+# Add Intel MPI include path manually
+INCL += -I/scinet/intel/2020u2/compilers_and_libraries_2020.2.254/linux/mpi/intel64/include
+
+
+Then I build the code using command: 
+make
+
+
+------- Running the code -------
+To run the code one has to copy the chimes-driver to the directory where the *.param file is located. 
+Also because I already manipulated the gas particles in the GIZMO output so I can't directly use the 
+snapshot_type 		       GIZMO
+command to read-in GIZMO particles. Therefore as the CHIMES webpage suggests I created an another 
+python file. This file, gizmo-driver/utils/user_def_utils.py, is used to read-in the gas and star (not as of yet)
+particles. The example file can be located in the folder: 
+"/scratch/m/murray/dtolgay/post_processing_fire_outputs/chimes/constant_isrf_B87"
+
+The required modules to run the code is written into the requirements.txt file. These are: 
+h5py==3.13.0
+mpi4py==4.0.3
+numpy==2.2.4
+
+One has to be careful here when installing the mpi4py module. If there is a problem while installing the module 
+then you need to do: 
+source venv/bin/activate
+module load intelmpi/2020u2
+MPICC=mpicc pip install --no-cache-dir mpi4py
+
+
+
+I also wrote a batch script to load both the venv and the required modules. The name of that file is load_modules.sh.
+It's content is: 
+#!/bin/bash
+
+module purge
+
+# Check if the virtual environment exists
+if [ -d "venv" ]; then
+    echo "Virtual environment 'venv' exists."
+
+    # Only try to deactivate if we're in a virtualenv and 'deactivate' is available
+    if type deactivate &>/dev/null; then
+        echo "Deactivating existing virtual environment."
+        deactivate
+    else
+        echo "No virtual environment currently active to deactivate."
+    fi
+
+    # Activate the virtual environment
+    source venv/bin/activate
+fi
+
+# Load required modules
+ml intel/2020u2
+ml intelmpi/2020u2
+ml hdf5/1.10.7
+
+
+
+After all of this setup one can run the code:
+cd /scratch/m/murray/dtolgay/post_processing_fire_outputs/chimes/constant_isrf_B87/chimes-driver
+Single core: 
+python chimes-driver *.param
+Multiple cores: 
+mpirun -np 80 chimes-driver *.param

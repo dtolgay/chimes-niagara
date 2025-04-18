@@ -1,0 +1,54 @@
+# General Parameters 
+chimes_library_path        /home/dtolgay/softwares/chimes/chimes/libchimes.so 
+chimes_data_path           /home/dtolgay/softwares/chimes/chimes-data 
+
+driver_mode                eqm_state 
+IO_mode		           snapshot 
+
+input_file 	     	   /mnt/raid-cita/dtolgay/FIRE/post_processing_fire_outputs/chimes/doga/trial1/hdf5_files/zoom_in/z0.0/m12i_res7100_md.hdf5
+output_file                /mnt/raid-cita/dtolgay/FIRE/post_processing_fire_outputs/chimes/doga/trial1/hdf5_files/zoom_in/z0.0/m12i_res7100_md_chimes.hdf5
+snapshot_type 		   GIZMO 
+snapshot_chemistry_array   None 
+snapshot_flux_ion_array    ChimesFluxIon_output
+snapshot_flux_G0_array     ChimesFluxG0_output
+snapshot_cosmo_flag	   0 
+snapshot_unitMass_cgs	   1.989e43 
+snapshot_unitLength_cgs    3.0857e21 
+snapshot_unitVelocity_cgs  1.0e5 
+
+compute_stellar_fluxes     1 
+stellar_fluxes_fEsc_ion    0.05 
+stellar_fluxes_fEsc_G0     0.1 
+
+UV_field                   StellarFluxes
+shield_mode                Jeans
+dust_depletion             DC16 
+
+n_iterations               10
+
+# Global Parameters
+StaticMolCooling           1 
+Tmol_K                     1.0e5 
+InitIonState               1 
+grain_temperature          10.0 
+cmb_temperature            2.725 
+relativeTolerance          1.0e-4 
+absoluteTolerance          1.0e-10 
+explicitTolerance          0.05 
+scale_metal_tolerances     1 
+IncludeCarbon              1 
+IncludeNitrogen            1 
+IncludeOxygen              1 
+IncludeNeon                1 
+IncludeMagnesium           1
+IncludeSilicon             1
+IncludeSulphur             1
+IncludeCalcium             1
+IncludeIron                1
+
+# Gas Parameters
+cr_rate                    1.8e-16 
+doppler_broad              7.1 
+ForceEqOn                  0 
+ThermEvolOn                0 
+hydro_timestep             3.16e16
