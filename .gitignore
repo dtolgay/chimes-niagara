@@ -1,3 +1,4 @@
 /hdf5_files 
 /venv
-/notebooks/venv_jupyter
+/notebooks/.venv_jupyter
+/.venv
