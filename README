@@ -128,6 +128,6 @@ ml hdf5/1.10.7
 After all of this setup one can run the code:
 cd /scratch/m/murray/dtolgay/post_processing_fire_outputs/chimes/constant_isrf_B87/chimes-driver
 Single core: 
-python chimes-driver *.param
+python chimes-driver.py *.param
 Multiple cores: 
-mpirun -np 80 chimes-driver *.param
+mpirun -np 80 chimes-driver.py *.param
